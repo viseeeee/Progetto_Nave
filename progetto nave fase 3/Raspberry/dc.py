@@ -1,8 +1,8 @@
-import json
 import socket
 import time
 import os
 import sys
+import json  
 
 import wifidc
 import misurazione
@@ -23,16 +23,17 @@ def recv_line(sock: socket.socket) -> str:
     return data.decode("utf-8", errors="replace").strip()
 
 def main():
-    # Wi-Fi
-    wlan = wifidc.connetti_wifi()
-    print(wifidc.info(wlan))
+    
+    wlan = wifidc.connetti_wifi()  
+    print(wifidc.info(wlan))  
 
-    # Config
+   
     with open(DA_FILE, "r", encoding="utf-8") as f:
         da = json.load(f)
     ip_server = da["IP"]
     porta_server = int(da["porta"])
 
+    
     with open(CONFIG_FILE, "r", encoding="utf-8") as f:
         cfg = json.load(f)
 
