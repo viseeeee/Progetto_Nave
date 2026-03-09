@@ -1,8 +1,0 @@
-{
-    "TEMPO_RILEVAZIONE ": 5,
-    "N_DECIMALI ": 2,
-    "IDENTITA_GIOT ": "GIOT-001",
-    "TEMPO_INVIO": 2,
-    "IP_SERVER": "192.168.5.124",
-    "PORTA_SERVER": 9090
-}
