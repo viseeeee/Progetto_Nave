@@ -1,19 +1,15 @@
-# iotgwda.py (DA/GIOT)
 import json
 import socket
 import time
 import sys
 from pathlib import Path
-
 # Importa il modulo di criptazione
 import cripto 
 
 # Stringa contenente il percorso assoluto della cartella DA
 BASE_DIR = Path(__file__).resolve().parent
-
 # Costruisce una stringa con il percorso di parametri.conf
-PARAMETRI_FILE = BASE_DIR / "parametri.conf"
-
+PARAMETRI_FILE = BASE_DIR / "parametri.json"
 # Percorso in cui si trova la cartella DA
 PROJECT_DIR = BASE_DIR.parent
 # Costruisce una stringa con il percorso della cartella IOTP
@@ -88,7 +84,6 @@ def main():
                     
                     #Invia i dati a DC 
                     conn.sendall((json.dumps(parametri_init) + "\n").encode("utf-8"))
-
                    
                     while True:
                         line = recv_line(conn)# Riceve i dati dal client
@@ -103,18 +98,16 @@ def main():
 
                         print("Ricevuto da DC:")
                         print(json.dumps(dato_dc, indent=4, ensure_ascii=False))
-
                         identita_dc = dato_dc.get("identita")
-                        cabina = dato_dc.get("cabina")
+                        camera = dato_dc.get("camera")
                         ponte = dato_dc.get("ponte")
-
                         osservazione = dato_dc.get("osservazione", {})
                         t = osservazione.get("temperatura")
                         u = osservazione.get("umidita")
 
                         if identita_dc not in buffer_dc:
                             buffer_dc[identita_dc] = {
-                                "cabina": cabina,
+                                "camera": camera,
                                 "ponte": ponte,
                                 "temperatura": [],
                                 "umidita": []
@@ -131,7 +124,6 @@ def main():
                         if now - ultimo_invio >= TEMPO_INVIO:
                             invionumero += 1
                             ultimo_invio = now
-
                             # Crea la media per la temperatura e per l'umidità
                             for dc_id, b in buffer_dc.items():
                                 mt = mean(b["temperatura"])
@@ -142,7 +134,7 @@ def main():
 
                                 dato_iotp = {
                                     "invionumero": invionumero,
-                                    "cabina": b["cabina"],
+                                    "camera": b["camera"],
                                     "ponte": b["ponte"],
                                     "temperatura": round(mt, N_DECIMALI),
                                     "umidita": round(mu, N_DECIMALI),
@@ -150,22 +142,17 @@ def main():
                                     "identita": IDENTITA_GIOT,
                                     "dc": dc_id
                                 }
-
                                 # Criptazione
                                 dato_iot_dc_json = json.dumps(dato_iotp)
                                 dato_iot_dc_json_criptato = cripto.criptazione(dato_iot_dc_json)
-
                                 # Stampo dato criptato 
                                 print("Da inviare a IOTPlatform (criptato):")
                                 print(dato_iot_dc_json_criptato)
-
                                 print("SALVO ORA su:", IOTP_DB_FILE)
                                 print("dato_iot_dc_json:", dato_iot_dc_json)
-                                
                                 # Salvo il dato non criptato su file iotdata.dbt
                                 with open(IOTP_DB_FILE, "a", encoding="utf-8") as out:
                                     out.write(dato_iot_dc_json + "\n")
-
                                 # Azzero buffer dopo invio 
                                 b["temperatura"].clear()
                                 b["umidita"].clear()
